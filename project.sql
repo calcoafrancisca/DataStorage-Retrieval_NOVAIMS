@@ -218,6 +218,8 @@ CREATE INDEX ix_bookings_class_status ON class_bookings(class_id, status);
 
 
 
+
+
 /* ===========================================================
    TRIGGERS (2 required by brief)
    - T1: After check-in => increment members.visit_count
@@ -364,6 +366,137 @@ JOIN (
 SET o.subtotal = s.subtotal,
     o.tax_amount = ROUND(s.subtotal * 0.23, 2);
 
+/* ===========================================================
+   EXTRA TRANSACTIONS to reach ~30 order_items rows
+   =========================================================== */
+
+-- Resolve product IDs & prices once (safe to SELECT here)
+SET @pid_tee   := (SELECT product_id FROM products WHERE sku='M-TEE');
+SET @pid_bot   := (SELECT product_id FROM products WHERE sku='M-BOT');
+SET @pid_basic := (SELECT product_id FROM products WHERE sku='MEM-BASIC');
+SET @pid_prem  := (SELECT product_id FROM products WHERE sku='MEM-PREM');
+SET @pid_class := (SELECT product_id FROM products WHERE sku='CLS-DROPIN');
+
+SET @p_tee   := (SELECT unit_price FROM products WHERE product_id=@pid_tee);
+SET @p_bot   := (SELECT unit_price FROM products WHERE product_id=@pid_bot);
+SET @p_basic := (SELECT unit_price FROM products WHERE product_id=@pid_basic);
+SET @p_prem  := (SELECT unit_price FROM products WHERE product_id=@pid_prem);
+SET @p_class := (SELECT unit_price FROM products WHERE product_id=@pid_class);
+
+-- O6: 2024-12-15 (João) T-shirt + drop-in
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (2,'2024-12-15 12:00:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_tee,   'Gym T-Shirt',   1, @p_tee),
+(@oid, @pid_class, 'Drop-in Class', 1, @p_class);
+
+-- O7: 2025-01-05 (Ana) Basic plan + bottle
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (1,'2025-01-05 09:00:00','paid','online');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_basic, 'Monthly Basic Plan', 1, @p_basic),
+(@oid, @pid_bot,   'Water Bottle',       1, @p_bot);
+
+-- O8: 2025-02-14 (Marta) bottle x2 + class
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (3,'2025-02-14 18:30:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_bot,   'Water Bottle', 2, @p_bot),
+(@oid, @pid_class, 'Drop-in Class', 1, @p_class);
+
+-- O9: 2025-03-10 (Inês) T-shirt + class
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (5,'2025-03-10 07:45:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_tee,   'Gym T-Shirt',   1, @p_tee),
+(@oid, @pid_class, 'Drop-in Class', 1, @p_class);
+
+-- O10: 2025-04-22 (Ricardo) Premium plan
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (6,'2025-04-22 17:10:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_prem,  'Premium monthly plan', 1, @p_prem);
+
+-- O11: 2025-05-15 (João) T-shirt + bottle
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (2,'2025-05-15 10:00:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_tee, 'Gym T-Shirt', 1, @p_tee),
+(@oid, @pid_bot, 'Water Bottle', 1, @p_bot);
+
+-- O12: 2025-06-30 (Tiago) Premium + class
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (4,'2025-06-30 19:20:00','paid','online');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_prem,  'Premium monthly plan', 1, @p_prem),
+(@oid, @pid_class, 'Drop-in Class',        1, @p_class);
+
+-- O13: 2025-07-12 (Ana) T-shirt x2
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (1,'2025-07-12 11:00:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_tee, 'Gym T-Shirt', 2, @p_tee);
+
+-- O14: 2025-08-25 (Marta) bottle + class
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (3,'2025-08-25 08:15:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_bot,   'Water Bottle',   1, @p_bot),
+(@oid, @pid_class, 'Drop-in Class',  1, @p_class);
+
+-- O15: 2025-11-03 (Tiago) T-shirt + bottle + class
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (4,'2025-11-03 12:34:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price)
+VALUES 
+(@oid, @pid_tee,   'Gym T-Shirt',   1, @p_tee),
+(@oid, @pid_bot,   'Water Bottle',  1, @p_bot),
+(@oid, @pid_class, 'Drop-in Class', 1, @p_class);
+
+-- O16: 2025-11-20 (Ana) T-shirt + Bottle + Class
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (1,'2025-11-20 10:05:00','paid','card');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price) VALUES
+(@oid, @pid_tee,   'Gym T-Shirt',   1, @p_tee),
+(@oid, @pid_bot,   'Water Bottle',  1, @p_bot),
+(@oid, @pid_class, 'Drop-in Class', 1, @p_class);
+
+-- O17: 2025-11-25 (Ricardo) Premium + T-shirt
+INSERT INTO orders (member_id, order_date, status, payment_method)
+VALUES (6,'2025-11-25 18:45:00','paid','online');
+SET @oid := LAST_INSERT_ID();
+INSERT INTO order_items (order_id, product_id, description, qty, unit_price) VALUES
+(@oid, @pid_prem, 'Premium monthly plan', 1, @p_prem),
+(@oid, @pid_tee,  'Gym T-Shirt',          1, @p_tee);
+
+-- Recompute order totals (covers all orders)
+UPDATE orders o
+JOIN (
+  SELECT order_id, SUM(line_total) AS subtotal
+  FROM order_items GROUP BY order_id
+) s ON s.order_id = o.order_id
+SET o.subtotal = s.subtotal,
+    o.tax_amount = ROUND(s.subtotal * 0.23, 2);
 
 
 -- Reviews consistency validation triggers
@@ -402,24 +535,6 @@ INSERT INTO reviews (member_id, target_type, class_id, rating, comment) VALUES
 INSERT INTO reviews (member_id, target_type, trainer_id, rating, comment) VALUES
 (3,'trainer',2,5,'Marco explains very clearly'),
 (5,'trainer',1,4,'Challenging sessions');
-
-
-
-
--- (Optional hardening) Validate reviews consistency — uncomment if you want strict rules
--- DROP TRIGGER IF EXISTS trg_reviews_bi_validate;
--- DELIMITER //
--- CREATE TRIGGER trg_reviews_bi_validate
--- BEFORE INSERT ON reviews
--- FOR EACH ROW
--- BEGIN
---   IF (NEW.target_type='class'   AND (NEW.class_id IS NULL OR NEW.trainer_id IS NOT NULL)) OR
---      (NEW.target_type='trainer' AND (NEW.trainer_id IS NULL OR NEW.class_id IS NOT NULL)) THEN
---     SIGNAL SQLSTATE '45000'
---       SET MESSAGE_TEXT = 'reviews: target_type must match the non-NULL FK (class_id XOR trainer_id).';
---   END IF;
--- END//
--- DELIMITER ;
 
 
  /* ===========================================================
