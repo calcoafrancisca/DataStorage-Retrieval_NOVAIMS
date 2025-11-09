@@ -128,86 +128,96 @@ erDiagram
   MEMBERS ||--o{ CHECK_INS : makes
   MEMBERS ||--o{ ORDERS : places
   ORDERS ||--o{ ORDER_ITEMS : contains
-  PRODUCTS ||--o{ ORDER_ITEMS : referenced
+  PRODUCTS ||--o{ ORDER_ITEMS : contains
   MEMBERS ||--o{ REVIEWS : writes
   GYM_CLASSES ||--o{ REVIEWS : about_class
   TRAINERS ||--o{ REVIEWS : about_trainer
 
   PLANS {
-    INT plan_id PK
-    VARCHAR plan_name
-    DECIMAL monthly_fee
-    TINYINT is_active
+    int plan_id PK
+    string plan_name
+    float monthly_fee
+    boolean is_active
   }
+
   MEMBERS {
-    INT member_id PK
-    INT plan_id FK
-    VARCHAR first_name
-    VARCHAR last_name
-    VARCHAR email UNIQUE
-    INT visit_count
+    int member_id PK
+    int plan_id FK
+    string first_name
+    string last_name
+    string email
+    int visit_count
   }
+
   TRAINERS {
-    INT trainer_id PK
-    VARCHAR first_name
-    VARCHAR last_name
+    int trainer_id PK
+    string first_name
+    string last_name
   }
+
   GYM_CLASSES {
-    INT class_id PK
-    INT trainer_id FK
-    VARCHAR class_name
-    DATETIME start_time
-    DATETIME end_time
+    int class_id PK
+    int trainer_id FK
+    string class_name
+    datetime start_time
+    datetime end_time
   }
+
   CLASS_BOOKINGS {
-    INT booking_id PK
-    INT class_id FK
-    INT member_id FK
-    ENUM status
+    int booking_id PK
+    int class_id FK
+    int member_id FK
+    string status
   }
+
   CHECK_INS {
-    INT check_in_id PK
-    INT member_id FK
-    DATETIME check_in_time
+    int check_in_id PK
+    int member_id FK
+    datetime check_in_time
   }
+
   PRODUCTS {
-    INT product_id PK
-    VARCHAR sku UNIQUE
-    ENUM category
-    DECIMAL unit_price
-    INT stock_qty
+    int product_id PK
+    string sku
+    string category
+    float unit_price
+    int stock_qty
   }
+
   ORDERS {
-    INT order_id PK
-    INT member_id FK
-    DATETIME order_date
-    DECIMAL subtotal
-    DECIMAL tax_amount
-    DECIMAL total_amount (generated)
+    int order_id PK
+    int member_id FK
+    datetime order_date
+    float subtotal
+    float tax_amount
+    float total_amount
   }
+
   ORDER_ITEMS {
-    INT order_item_id PK
-    INT order_id FK
-    INT product_id FK
-    INT qty
-    DECIMAL unit_price
-    DECIMAL line_total (generated)
+    int order_item_id PK
+    int order_id FK
+    int product_id FK
+    int qty
+    float unit_price
+    float line_total
   }
+
   REVIEWS {
-    INT review_id PK
-    INT member_id FK
-    ENUM target_type
-    INT class_id FK NULL
-    INT trainer_id FK NULL
-    TINYINT rating
+    int review_id PK
+    int member_id FK
+    string target_type
+    int class_id FK
+    int trainer_id FK
+    int rating
   }
+
   LOG_EVENTS {
-    INT log_id PK
-    DATETIME event_time
-    VARCHAR action
-    VARCHAR table_name
-    VARCHAR record_id
-    JSON details
+    int log_id PK
+    datetime event_time
+    string action
+    string table_name
+    string record_id
+    string details
   }
 ```
 
