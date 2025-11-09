@@ -128,7 +128,7 @@ erDiagram
   MEMBERS ||--o{ CHECK_INS : makes
   MEMBERS ||--o{ ORDERS : places
   ORDERS ||--o{ ORDER_ITEMS : contains
-  PRODUCTS ||--o{ ORDER_ITEMS : contains
+  PRODUCTS ||--o{ ORDER_ITEMS : referenced_by
   MEMBERS ||--o{ REVIEWS : writes
   GYM_CLASSES ||--o{ REVIEWS : about_class
   TRAINERS ||--o{ REVIEWS : about_trainer
